@@ -2,6 +2,8 @@
 This is [Prometheus](https://prometheus.io/) metrics exporter for [Typesense](https://typesense.org) 
 [metrics](https://typesense.org/docs/0.23.1/api/cluster-operations.html#cluster-metrics).
 
+Tested only with Typesense 0.23.1.
+
 ## Usage
 
 ### Env variables
