@@ -36,9 +36,6 @@ func main() {
 	http.Handle(
 		"/health", http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				client.GetHealth()
-				client.GetStats()
-				client.GetMetrics()
 				w.WriteHeader(http.StatusOK)
 			},
 		),

@@ -4,11 +4,18 @@ This is [Prometheus](https://prometheus.io/) metrics exporter for [Typesense](ht
 
 ## Usage
 
+### Env variables
+```
+export TYPESENSE_API_KEY=xyz
+export TYPESENSE_URL=http://localhost:8108
+export EXPORTER_PORT=9101
+```
+
 ### Docker
 
 ```
 docker build -t typesense-exporter .
-docker run -d -p 9101:9101 -e TYPESENSE_API_KEY=xyz -e TYPESENSE_HOST=http://typesense:8108 typesense-exporter
+docker run -d -p 9115:9115 -e EXPORTER_PORT=9115 -e TYPESENSE_API_KEY=xyz -e TYPESENSE_HOST=http://typesense:8108 typesense-exporter
 ```
 
 ## Local development
@@ -23,6 +30,5 @@ go build -o typesense_exporter
 ### Running with docker-compose
     
 ```
-export TYPESENSE_API_KEY=xyz
 docker-compose up
 ```
