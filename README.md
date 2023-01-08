@@ -1,7 +1,6 @@
 # Typesense metrics exporter for Prometheus
-This is a simple exporter for [Typesense](https://typesense.org) 
-[metrics](https://typesense.org/docs/0.23.1/api/cluster-operations.html#cluster-metrics). It is written in Go
-and uses the [Prometheus](https://prometheus.io/) Go [client library](https://github.com/prometheus/client_golang)
+This is [Prometheus](https://prometheus.io/) metrics exporter for [Typesense](https://typesense.org) 
+[metrics](https://typesense.org/docs/0.23.1/api/cluster-operations.html#cluster-metrics).
 
 ## Usage
 
