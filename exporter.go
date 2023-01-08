@@ -217,138 +217,142 @@ func (e *Exporter) collectUp(ch chan<- prometheus.Metric) {
 
 func (em *ExporterMetrics) initializeDescriptors() {
 	const namespace = "typesense"
+	const subsystemSystem = "system"
+	const subsystemApplication = "application"
+	const subsystemApi = "api"
+
 	em.Up = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "up"),
 		"Was the last scrape of the Typesense exporter successful.",
 		nil, nil,
 	)
 	em.SystemCPUxActivePercentage = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_cpu_x_active_percentage"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "cpu_x_active_percentage"),
 		"Percentage of CPU core time spent in user mode.",
 		[]string{"cpu"}, nil,
 	)
 	em.SystemDiskTotalBytes = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_disk_total_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "disk_total_bytes"),
 		"Total disk space in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.SystemDiskUsedBytes = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_disk_used_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "disk_used_bytes"),
 		"Used disk space in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.SystemMemoryTotalBytes = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_memory_total_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "memory_total_bytes"),
 		"Total memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.SystemMemoryUsedBytes = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_memory_used_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "memory_used_bytes"),
 		"Used memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.SystemNetworkReceived = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_network_received_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "network_received_bytes"),
 		"Total bytes received by the network interface.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.SystemNetworkSent = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "system", "system_network_sent_bytes"),
+		prometheus.BuildFQName(namespace, subsystemSystem, "network_sent_bytes"),
 		"Total bytes sent by the network interface.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryActive = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_active_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_active_bytes"),
 		"Total active memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryAllocated = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_allocated_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_allocated_bytes"),
 		"Total allocated memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryFragment = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_fragment_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_fragment_bytes"),
 		"Total memory fragmentation in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryMapped = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_mapped_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_mapped_bytes"),
 		"Total mapped memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryMetadata = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_metadata_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_metadata_bytes"),
 		"Total metadata memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryResident = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_resident_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_resident_bytes"),
 		"Total resident memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.TypesenseMemoryRetained = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "typesense", "typesense_memory_retained_bytes"),
+		prometheus.BuildFQName(namespace, subsystemApplication, "memory_retained_bytes"),
 		"Total retained memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
 	em.ApiStatsRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "requests_per_second"),
 		"Number of requests per second.",
 		[]string{"endpoint"}, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "endpoint_requests_latency_seconds"),
+		prometheus.BuildFQName(namespace, subsystemApi, "endpoint_requests_latency_seconds"),
 		"Endpoint request latency in seconds.",
 		[]string{"endpoint"}, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsDeleteLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "delete_requests_latency_seconds"),
+		prometheus.BuildFQName(namespace, subsystemApi, "delete_requests_latency_seconds"),
 		"Delete request latency in seconds.",
 		nil, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsDeleteRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "delete_requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "delete_requests_per_second"),
 		"Delete requests per second.",
 		nil, nil,
 	)
 	em.ApiStatsImportLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "import_requests_latency_seconds"),
+		prometheus.BuildFQName(namespace, subsystemApi, "import_requests_latency_seconds"),
 		"Import request latency in seconds.",
 		nil, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsImportRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "import_requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "import_requests_per_second"),
 		"Import requests per second.",
 		nil, nil,
 	)
 	em.ApiStatsPendingWrite = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "pending_write_batches"),
+		prometheus.BuildFQName(namespace, subsystemApi, "pending_write_batches"),
 		"Number of pending write batches.",
 		nil, nil,
 	)
 	em.ApiStatsSearchLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "search_requests_latency_seconds"),
+		prometheus.BuildFQName(namespace, subsystemApi, "search_requests_latency_seconds"),
 		"Search request latency in seconds.",
 		nil, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsSearchRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "search_requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "search_requests_per_second"),
 		"Search requests per second.",
 		nil, nil,
 	)
 	em.ApiStatsTotalRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "total_requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "total_requests_per_second"),
 		"Total requests per second.",
 		nil, nil,
 	)
 	em.ApiStatsWriteLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "write_requests_latency_seconds"),
+		prometheus.BuildFQName(namespace, subsystemApi, "write_requests_latency_seconds"),
 		"Write request latency in seconds.",
 		nil, prometheus.Labels{"unit": "seconds"},
 	)
 	em.ApiStatsWriteRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "api", "write_requests_per_second"),
+		prometheus.BuildFQName(namespace, subsystemApi, "write_requests_per_second"),
 		"Write requests per second.",
 		nil, nil,
 	)
