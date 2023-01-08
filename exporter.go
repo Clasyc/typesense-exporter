@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
+	"strconv"
 	"sync"
 )
 
@@ -27,18 +28,11 @@ type ExporterMetrics struct {
 	TypesenseMemoryMetadata    *prometheus.Desc
 	TypesenseMemoryResident    *prometheus.Desc
 	TypesenseMemoryRetained    *prometheus.Desc
-	ApiStatsDeleteLatency      *prometheus.Desc
-	ApiStatsDeleteRequests     *prometheus.Desc
-	ApiStatsImportLatency      *prometheus.Desc
-	ApiStatsImportRequests     *prometheus.Desc
-	ApiStatsLatency            *prometheus.Desc
+	ApiStatsOperationLatency   *prometheus.Desc
+	ApiStatsOperationRequests  *prometheus.Desc
+	ApiStatsEndpointLatency    *prometheus.Desc
+	ApiStatsEndpointRequests   *prometheus.Desc
 	ApiStatsPendingWrite       *prometheus.Desc
-	ApiStatsRequests           *prometheus.Desc
-	ApiStatsSearchLatency      *prometheus.Desc
-	ApiStatsSearchRequests     *prometheus.Desc
-	ApiStatsTotalRequests      *prometheus.Desc
-	ApiStatsWriteLatency       *prometheus.Desc
-	ApiStatsWriteRequests      *prometheus.Desc
 }
 
 func (em *ExporterMetrics) Describe(ch chan<- *prometheus.Desc) {
@@ -57,18 +51,11 @@ func (em *ExporterMetrics) Describe(ch chan<- *prometheus.Desc) {
 	ch <- em.TypesenseMemoryMetadata
 	ch <- em.TypesenseMemoryResident
 	ch <- em.TypesenseMemoryRetained
-	ch <- em.ApiStatsDeleteLatency
-	ch <- em.ApiStatsDeleteRequests
-	ch <- em.ApiStatsImportLatency
-	ch <- em.ApiStatsImportRequests
-	ch <- em.ApiStatsLatency
+	ch <- em.ApiStatsOperationLatency
+	ch <- em.ApiStatsOperationRequests
+	ch <- em.ApiStatsEndpointLatency
+	ch <- em.ApiStatsEndpointRequests
 	ch <- em.ApiStatsPendingWrite
-	ch <- em.ApiStatsRequests
-	ch <- em.ApiStatsSearchLatency
-	ch <- em.ApiStatsSearchRequests
-	ch <- em.ApiStatsTotalRequests
-	ch <- em.ApiStatsWriteLatency
-	ch <- em.ApiStatsWriteRequests
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
@@ -93,13 +80,20 @@ func (e *Exporter) collectMetrics(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	for name, value := range v.SystemCPUxActivePercentage {
+	i := 0
+	for _, value := range v.SystemCPUxActivePercentage {
+		i++
 		float, err := value.Float64()
 		if err != nil {
 			continue
 		}
+		label := strconv.Itoa(i)
+		if i == len(v.SystemCPUxActivePercentage)-1 {
+			label = "all"
+		}
 		ch <- prometheus.MustNewConstMetric(
-			e.ExporterMetrics.SystemCPUxActivePercentage, prometheus.GaugeValue, percentageToRatio(float), name,
+			e.ExporterMetrics.SystemCPUxActivePercentage, prometheus.GaugeValue, percentageToRatio(float),
+			label,
 		)
 	}
 
@@ -157,7 +151,7 @@ func (e *Exporter) collectStats(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(
-			e.ExporterMetrics.ApiStatsRequests, prometheus.GaugeValue, float, name,
+			e.ExporterMetrics.ApiStatsEndpointRequests, prometheus.GaugeValue, float, name,
 		)
 	}
 	for name, value := range s.Requests {
@@ -166,39 +160,39 @@ func (e *Exporter) collectStats(ch chan<- prometheus.Metric) {
 			continue
 		}
 		ch <- prometheus.MustNewConstMetric(
-			e.ExporterMetrics.ApiStatsLatency, prometheus.GaugeValue, msToSeconds(float), name,
+			e.ExporterMetrics.ApiStatsEndpointLatency, prometheus.GaugeValue, msToSeconds(float), name,
 		)
 	}
 
 	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsDeleteLatency, prometheus.GaugeValue, msToSeconds(s.DeleteLatency),
+		e.ExporterMetrics.ApiStatsOperationLatency, prometheus.GaugeValue, msToSeconds(s.DeleteLatency), "delete",
 	)
 	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsDeleteRequests, prometheus.GaugeValue, s.DeleteRequests,
+		e.ExporterMetrics.ApiStatsOperationRequests, prometheus.GaugeValue, s.DeleteRequests, "delete",
 	)
 	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsImportLatency, prometheus.GaugeValue, msToSeconds(s.ImportLatency),
+		e.ExporterMetrics.ApiStatsOperationLatency, prometheus.GaugeValue, msToSeconds(s.ImportLatency), "import",
 	)
 	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsImportRequests, prometheus.GaugeValue, s.ImportRequests,
+		e.ExporterMetrics.ApiStatsOperationRequests, prometheus.GaugeValue, s.ImportRequests, "import",
+	)
+	ch <- prometheus.MustNewConstMetric(
+		e.ExporterMetrics.ApiStatsOperationLatency, prometheus.GaugeValue, msToSeconds(s.SearchLatency), "search",
+	)
+	ch <- prometheus.MustNewConstMetric(
+		e.ExporterMetrics.ApiStatsOperationRequests, prometheus.GaugeValue, s.SearchRequests, "search",
+	)
+	ch <- prometheus.MustNewConstMetric(
+		e.ExporterMetrics.ApiStatsOperationLatency, prometheus.GaugeValue, msToSeconds(s.WriteLatency), "write",
+	)
+	ch <- prometheus.MustNewConstMetric(
+		e.ExporterMetrics.ApiStatsOperationRequests, prometheus.GaugeValue, s.WriteRequests, "write",
+	)
+	ch <- prometheus.MustNewConstMetric(
+		e.ExporterMetrics.ApiStatsOperationRequests, prometheus.GaugeValue, s.TotalRequests, "all",
 	)
 	ch <- prometheus.MustNewConstMetric(
 		e.ExporterMetrics.ApiStatsPendingWrite, prometheus.GaugeValue, s.PendingWrite,
-	)
-	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsSearchLatency, prometheus.GaugeValue, msToSeconds(s.SearchLatency),
-	)
-	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsSearchRequests, prometheus.GaugeValue, s.SearchRequests,
-	)
-	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsTotalRequests, prometheus.GaugeValue, s.TotalRequests,
-	)
-	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsWriteLatency, prometheus.GaugeValue, msToSeconds(s.WriteLatency),
-	)
-	ch <- prometheus.MustNewConstMetric(
-		e.ExporterMetrics.ApiStatsWriteRequests, prometheus.GaugeValue, s.WriteRequests,
 	)
 }
 
@@ -227,8 +221,8 @@ func (em *ExporterMetrics) initializeDescriptors() {
 		nil, nil,
 	)
 	em.SystemCPUxActivePercentage = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemSystem, "cpu_x_active_percentage"),
-		"Percentage of CPU core time spent in user mode.",
+		prometheus.BuildFQName(namespace, subsystemSystem, "cpu_x_active"),
+		"Ratio of CPU core time spent in user mode.",
 		[]string{"cpu"}, nil,
 	)
 	em.SystemDiskTotalBytes = prometheus.NewDesc(
@@ -296,65 +290,30 @@ func (em *ExporterMetrics) initializeDescriptors() {
 		"Total retained memory in bytes.",
 		nil, prometheus.Labels{"unit": "bytes"},
 	)
-	em.ApiStatsRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "requests_per_second"),
-		"Number of requests per second.",
-		[]string{"endpoint"}, prometheus.Labels{"unit": "seconds"},
-	)
-	em.ApiStatsLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "endpoint_requests_latency_seconds"),
-		"Endpoint request latency in seconds.",
-		[]string{"endpoint"}, prometheus.Labels{"unit": "seconds"},
-	)
-	em.ApiStatsDeleteLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "delete_requests_latency_seconds"),
-		"Delete request latency in seconds.",
-		nil, prometheus.Labels{"unit": "seconds"},
-	)
-	em.ApiStatsDeleteRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "delete_requests_per_second"),
-		"Delete requests per second.",
-		nil, nil,
-	)
-	em.ApiStatsImportLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "import_requests_latency_seconds"),
-		"Import request latency in seconds.",
-		nil, prometheus.Labels{"unit": "seconds"},
-	)
-	em.ApiStatsImportRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "import_requests_per_second"),
-		"Import requests per second.",
-		nil, nil,
-	)
 	em.ApiStatsPendingWrite = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, subsystemApi, "pending_write_batches"),
 		"Number of pending write batches.",
 		nil, nil,
 	)
-	em.ApiStatsSearchLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "search_requests_latency_seconds"),
-		"Search request latency in seconds.",
-		nil, prometheus.Labels{"unit": "seconds"},
+	em.ApiStatsOperationLatency = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, subsystemApi, "operation_latency_seconds"),
+		"Latency of the operation in seconds.",
+		[]string{"operation"}, nil,
 	)
-	em.ApiStatsSearchRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "search_requests_per_second"),
-		"Search requests per second.",
-		nil, nil,
+	em.ApiStatsOperationRequests = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, subsystemApi, "operation_requests_per_second"),
+		"Number of requests per second for the operation.",
+		[]string{"operation"}, nil,
 	)
-	em.ApiStatsTotalRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "total_requests_per_second"),
-		"Total requests per second.",
-		nil, nil,
+	em.ApiStatsEndpointLatency = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, subsystemApi, "endpoint_latency_seconds"),
+		"Latency of the endpoint in seconds.",
+		[]string{"endpoint"}, nil,
 	)
-	em.ApiStatsWriteLatency = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "write_requests_latency_seconds"),
-		"Write request latency in seconds.",
-		nil, prometheus.Labels{"unit": "seconds"},
-	)
-	em.ApiStatsWriteRequests = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, subsystemApi, "write_requests_per_second"),
-		"Write requests per second.",
-		nil, nil,
+	em.ApiStatsEndpointRequests = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, subsystemApi, "endpoint_requests_per_second"),
+		"Number of requests per second for the endpoint.",
+		[]string{"endpoint"}, nil,
 	)
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -68,19 +69,21 @@ func (c *Client) get(path string) ([]byte, error) {
 	endpoint := fmt.Sprintf("%s/%s", c.host, path)
 	client := &http.Client{}
 
+	log.Printf("Fetching: %s\n", endpoint)
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
+		log.Printf("Error while fetching: %s\n", endpoint)
 		return nil, err
 	}
 
 	req.Header.Set(TypesenseHeaderApiKey, c.apiKey)
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error while fetching: %s\n", endpoint)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println(string(body))
 
 	return body, err
 }
