@@ -17,7 +17,7 @@ export EXPORTER_PORT=9101
 
 ```
 docker build -t typesense-exporter .
-docker run -d -p 9115:9115 -e EXPORTER_PORT=9115 -e TYPESENSE_API_KEY=xyz -e TYPESENSE_HOST=http://typesense:8108 typesense-exporter
+docker run -d -p 9115:9115 -e EXPORTER_PORT=9115 -e TYPESENSE_API_KEY=xyz -e TYPESENSE_URL=http://typesense:8108 typesense-exporter
 ```
 
 ## Local development
