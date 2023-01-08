@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  typesense:
+    image: typesense/typesense:0.23.1
+    environment:
+      - TYPESENSE_DATA_DIR=/data
+      - TYPESENSE_ENABLE_CORS=true
+      - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data:rw
+    networks:
+      - local
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
+    ports:
+      - "9090:9090"
+    networks:
+      - local
+
+  exporter:
+    build: .
+    container_name: typesense-exporter
+    restart: unless-stopped
+    environment:
+      - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
+      - TYPESENSE_URL=http://typesense:8108
+      - TYPESENSE_EXPORTER_PORT=${EXPORTER_PORT:-9101}
+    expose:
+      - ${EXPORTER_PORT:-9101}
+    networks:
+      - local
+
+volumes:
+  typesense-data:
+  prometheus_data:
+
+networks:
+  local:
+    driver: bridge
