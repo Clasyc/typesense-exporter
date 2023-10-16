@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"strconv"
@@ -86,7 +85,6 @@ func (e *Exporter) collectMetrics(ch chan<- prometheus.Metric) {
 		i++
 		float, err := value.Float64()
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		label := strconv.Itoa(i)
@@ -147,7 +145,7 @@ func (e *Exporter) collectStats(ch chan<- prometheus.Metric) {
 		return
 	}
 
-	for name, value := range s.Latency {
+	for name, value := range s.Requests {
 		float, err := value.Float64()
 		if err != nil {
 			continue
@@ -156,7 +154,7 @@ func (e *Exporter) collectStats(ch chan<- prometheus.Metric) {
 			e.ExporterMetrics.ApiStatsEndpointRequests, prometheus.GaugeValue, float, name,
 		)
 	}
-	for name, value := range s.Requests {
+	for name, value := range s.Latency {
 		float, err := value.Float64()
 		if err != nil {
 			continue

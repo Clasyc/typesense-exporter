@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
@@ -24,8 +23,6 @@ func main() {
 	typesenseUrl := os.Getenv("TYPESENSE_URL")
 	exporterPort := Getenv("EXPORTER_PORT", DefaultExporterPort)
 	insecure := GetBoolEnv("INSECURE_SKIP_VERIFY", DefaultInsecureSkipVerify)
-
-	fmt.Println(insecure)
 
 	client := NewClient(typesenseApiKey, typesenseUrl, insecure, 5*time.Second)
 	log.Printf("Using: %s", typesenseUrl)
