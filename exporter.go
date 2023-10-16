@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"strconv"
@@ -85,10 +86,11 @@ func (e *Exporter) collectMetrics(ch chan<- prometheus.Metric) {
 		i++
 		float, err := value.Float64()
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 		label := strconv.Itoa(i)
-		if i == len(v.SystemCPUxActivePercentage)-1 {
+		if i == len(v.SystemCPUxActivePercentage) {
 			label = "all"
 		}
 		ch <- prometheus.MustNewConstMetric(

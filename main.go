@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
@@ -10,6 +11,7 @@ import (
 )
 
 const DefaultExporterPort = "9101"
+const DefaultInsecureSkipVerify = false
 
 func main() {
 	if _, ok := os.LookupEnv("TYPESENSE_API_KEY"); !ok {
@@ -21,17 +23,24 @@ func main() {
 	typesenseApiKey := os.Getenv("TYPESENSE_API_KEY")
 	typesenseUrl := os.Getenv("TYPESENSE_URL")
 	exporterPort := Getenv("EXPORTER_PORT", DefaultExporterPort)
+	insecure := GetBoolEnv("INSECURE_SKIP_VERIFY", DefaultInsecureSkipVerify)
 
-	client := NewClient(typesenseApiKey, typesenseUrl, 5*time.Second)
+	fmt.Println(insecure)
+
+	client := NewClient(typesenseApiKey, typesenseUrl, insecure, 5*time.Second)
 	log.Printf("Using: %s", typesenseUrl)
 	_, err := client.GetHealth()
 	if err != nil {
 		log.Printf("WARNING: can't connect to typesense: %s", err)
 	}
 	exporter := NewExporter(client)
-	prometheus.MustRegister(exporter)
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(exporter)
 
-	http.Handle("/metrics", promhttp.Handler())
+	prometheus.Unregister(prometheus.NewGoCollector())
+	prometheus.Unregister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+
+	http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
 	http.Handle("/", http.RedirectHandler("/metrics", http.StatusMovedPermanently))
 	http.Handle(
 		"/health", http.HandlerFunc(

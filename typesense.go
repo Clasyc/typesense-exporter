@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -55,10 +56,15 @@ type ResponseHealth struct {
 	Ok bool `json:"ok"`
 }
 
-func NewClient(apiKey string, host string, timeout time.Duration) *Client {
+func NewClient(apiKey string, host string, insecure bool, timeout time.Duration) *Client {
 	return &Client{
 		http: &http.Client{
 			Timeout: timeout,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: insecure,
+				},
+			},
 		},
 		apiKey: apiKey,
 		host:   host,
@@ -67,19 +73,20 @@ func NewClient(apiKey string, host string, timeout time.Duration) *Client {
 
 func (c *Client) get(path string) ([]byte, error) {
 	endpoint := fmt.Sprintf("%s/%s", c.host, path)
-	client := &http.Client{}
 
 	log.Printf("Fetching: %s\n", endpoint)
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		log.Printf("Error while fetching: %s\n", endpoint)
+		log.Printf(err.Error())
 		return nil, err
 	}
 
 	req.Header.Set(TypesenseHeaderApiKey, c.apiKey)
-	resp, err := client.Do(req)
+	resp, err := c.http.Do(req)
 	if err != nil {
 		log.Printf("Error while fetching: %s\n", endpoint)
+		log.Printf(err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -93,10 +100,12 @@ func (c *Client) GetMetrics() (*ResponseMetrics, error) {
 	response := &ResponseMetrics{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
+		log.Printf("Error while unmarshalling input: %s", string(body))
 		return nil, err
 	}
 	err = json.Unmarshal(body, &response.SystemCPUxActivePercentage)
 	if err != nil {
+		log.Printf("Error while unmarshalling input: %s", string(body))
 		return nil, err
 	}
 	for k := range response.SystemCPUxActivePercentage {
@@ -113,6 +122,7 @@ func (c *Client) GetStats() (*ResponseApiStats, error) {
 	response := &ResponseApiStats{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
+		log.Printf("Error while unmarshalling input: %s", string(body))
 		return nil, err
 	}
 
@@ -128,6 +138,7 @@ func (c *Client) GetHealth() (bool, error) {
 	response := &ResponseHealth{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
+		log.Printf("Error while unmarshalling input: %s", string(body))
 		return false, err
 	}
 

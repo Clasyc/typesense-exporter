@@ -11,6 +11,7 @@ Tested only with Typesense 0.23.1.
 export TYPESENSE_API_KEY=xyz
 export TYPESENSE_URL=http://localhost:8108
 export EXPORTER_PORT=9101
+export INSECURE_SKIP_VERIFY=false
 ```
 
 ### Docker
